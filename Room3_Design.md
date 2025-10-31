@@ -9,7 +9,7 @@
 - Central command console
 - 8 workstations positioned radially (every 45 degrees)
 - Curved walls with monitors/screens
-- Multiple entry/exit points
+- Entry and exit point with dials on exit point
 - Overhead lighting system
 
 ## Notes
