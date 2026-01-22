@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
+
 #include "EscapeRoomCapstoneCharacter.generated.h"
 
 class UInputComponent;
@@ -48,6 +49,9 @@ protected:
 	/** Mouse Look Input Action */
 	UPROPERTY(EditAnywhere, Category ="Input")
 	class UInputAction* MouseLookAction;
+
+	UPROPERTY(EditAnywhere, Category="Input")
+	UInputAction* InteractAction;
 	
 public:
 	AEscapeRoomCapstoneCharacter();
@@ -75,15 +79,18 @@ protected:
 	/** Handles jump end inputs from either controls or UI interfaces */
 	UFUNCTION(BlueprintCallable, Category="Input")
 	virtual void DoJumpEnd();
-
-protected:
-
+	
 	/** Set up input action bindings */
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
 	
+	/** How far the player can interact with objects (trace distance) */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction")
+	float InteractionDistance = 250.f;
 
+	UFUNCTION(BlueprintCallable, Category = "Interaction")
+	void TryInteract();
+	
 public:
-
 	/** Returns the first person mesh **/
 	USkeletalMeshComponent* GetFirstPersonMesh() const { return FirstPersonMesh; }
 

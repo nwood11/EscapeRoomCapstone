@@ -9,6 +9,7 @@
 #include "InputActionValue.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "EscapeRoomCapstone.h"
+#include "PlayerInterface.h"
 
 AEscapeRoomCapstoneCharacter::AEscapeRoomCapstoneCharacter()
 {
@@ -59,13 +60,13 @@ void AEscapeRoomCapstoneCharacter::SetupPlayerInputComponent(UInputComponent* Pl
 		// Looking/Aiming
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AEscapeRoomCapstoneCharacter::LookInput);
 		EnhancedInputComponent->BindAction(MouseLookAction, ETriggerEvent::Triggered, this, &AEscapeRoomCapstoneCharacter::LookInput);
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &AEscapeRoomCapstoneCharacter::TryInteract);
 	}
 	else
 	{
 		UE_LOG(LogEscapeRoomCapstone, Error, TEXT("'%s' Failed to find an Enhanced Input Component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."), *GetNameSafe(this));
 	}
 }
-
 
 void AEscapeRoomCapstoneCharacter::MoveInput(const FInputActionValue& Value)
 {
@@ -117,4 +118,34 @@ void AEscapeRoomCapstoneCharacter::DoJumpEnd()
 {
 	// pass StopJumping to the character
 	StopJumping();
+}
+
+void AEscapeRoomCapstoneCharacter::TryInteract()
+{
+	if (!FirstPersonCameraComponent) return;
+
+	FVector Start = FirstPersonCameraComponent->GetComponentLocation();
+	FVector End = Start + (FirstPersonCameraComponent->GetForwardVector() * InteractionDistance);
+
+	FHitResult Hit;
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+
+	bool bHit = GetWorld()->LineTraceSingleByChannel(
+		Hit,
+		Start,
+		End,
+		ECC_Visibility,
+		Params
+	);
+
+	if (bHit && Hit.GetActor())
+	{
+		UE_LOG(LogEscapeRoomCapstone, Log, TEXT("Hit: %s"), *Hit.GetActor()->GetName());
+		AActor* HitActor = Hit.GetActor();
+		if (HitActor && HitActor->GetClass()->ImplementsInterface(UPlayerInterface::StaticClass()))
+		{
+			IPlayerInterface::Execute_OnInteract(HitActor, this);
+		}
+	}
 }
