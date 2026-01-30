@@ -8,6 +8,45 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTimerUpdated, float, RemainingTime);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnTimerExpired);
 
+// Delegate for inventory
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnInventoryUpdated, FName, ItemName, int32, Quantity);
+
+//inventory data structure
+USTRUCT(BlueprintType)
+struct FInventoryItem
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadWrite, Category = "Inventory")
+	FName ItemName;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Inventory")
+	int32 Quantity = 0;
+
+	//optional display name
+	UPROPERTY(BlueprintReadWrite, Category = "Inventory")
+	FText DisplayName;
+
+	//optional description
+	UPROPERTY(BlueprintReadWrite, Category = "Inventory")
+	FText Description;
+
+	//default constr
+	FInventoryItem()
+		: ItemName(NAME_None)
+		, Quantity(0)
+		, DisplayName(FText::GetEmpty())
+		, Description(FText::GetEmpty())
+	{}
+
+	FInventoryItem(FName InName, int32 InQuantity = 1)
+		: ItemName(InName)
+		, Quantity(InQuantity)
+		, DisplayName(FText::FromName(InName))
+		, Description(FText::GetEmpty())
+	{}
+};
+
 UCLASS()
 class ESCAPEROOMCAPSTONE_API UEscapeGameInstance : public UGameInstance
 {
@@ -30,12 +69,19 @@ public:
 	UPROPERTY(BlueprintReadWrite, Category = "Timer")
 	bool bTimerRunning = false;
 
+	//inventory
+	UPROPERTY(BlueprintReadOnly, Category = "Inventory")
+	TMap<FName, FInventoryItem> Inventory;
+
 	// === DELEGATES FOR HUD COMMUNICATION ===
 	UPROPERTY(BlueprintAssignable, Category = "Timer")
 	FOnTimerUpdated OnTimerUpdated;
 
 	UPROPERTY(BlueprintAssignable, Category = "Timer")
 	FOnTimerExpired OnTimerExpired;
+
+	UPROPERTY(BlueprintAssignable, Category = "Inventory")
+	FOnInventoryUpdated OnInventoryUpdated;
 
 public:
 	// === ROOM FUNCTIONS (Cory's existing code) ===
@@ -57,4 +103,14 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Timer")
 	FString GetFormattedTime();
+
+	// === INVENTORY FUNCTIONS(Nico) ===
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	void AddItem(FName ItemName, int32 Quantity = 1);
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	bool RemoveItem(FName ItemName, int32 Quantity = 1);
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	void ClearInventory();
 };

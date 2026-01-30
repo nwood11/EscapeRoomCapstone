@@ -82,3 +82,70 @@ FString UEscapeGameInstance::GetFormattedTime()
 	int32 Seconds = FMath::FloorToInt(FMath::Fmod(RemainingTime, 60.0f));
 	return FString::Printf(TEXT("%02d:%02d"), Minutes, Seconds);
 }
+
+// === INVENTORY FUNCTIONS (Nico) ===
+void UEscapeGameInstance::AddItem(FName ItemName, int32 Quantity)
+{
+	if (ItemName.IsNone() || Quantity <= 0)
+	{
+		if (GEngine)
+			GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, TEXT("Invalid item/quantity"));
+		return;
+	}
+
+	if (FInventoryItem* ExistingItem = Inventory.Find(ItemName))
+	{
+		ExistingItem->Quantity += Quantity;
+		if (GEngine)
+			GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Cyan, 
+				FString::Printf(TEXT("Added %d x %s (Total: %d)"), Quantity, *ItemName.ToString(), ExistingItem->Quantity));
+	}
+	else
+	{
+		FInventoryItem NewItem(ItemName, Quantity);
+		Inventory.Add(ItemName, NewItem);
+		if (GEngine)
+			GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Green, 
+				FString::Printf(TEXT("Picked up %d x %s"), Quantity, *ItemName.ToString()));
+	} //if is if the item is already in inventory, second is if it's a new item
+
+	OnInventoryUpdated.Broadcast(ItemName, Inventory[ItemName].Quantity);
+}
+
+bool UEscapeGameInstance::RemoveItem(FName ItemName, int32 Quantity)
+{
+	if (ItemName.IsNone() || Quantity <= 0)
+	{
+		return false;
+	}
+
+	FInventoryItem* ExistingItem = Inventory.Find(ItemName);
+	if (!ExistingItem || ExistingItem->Quantity < Quantity)
+	{
+		if (GEngine)
+			GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, 
+				FString::Printf(TEXT("Not enough %s in inventory"), *ItemName.ToString()));
+		return false;
+	} //doesnt allow user to remove items they dont have
+
+	ExistingItem->Quantity -= Quantity;
+	
+	if (GEngine)
+		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Yellow, 
+			FString::Printf(TEXT("Removed %d x %s (Remaining: %d)"), Quantity, *ItemName.ToString(), ExistingItem->Quantity));
+
+	if (ExistingItem->Quantity <= 0)
+	{
+		Inventory.Remove(ItemName);
+	} //removes item from inventory if quantity is 0
+
+	OnInventoryUpdated.Broadcast(ItemName, ExistingItem ? ExistingItem->Quantity : 0);
+	return true;
+}
+
+void UEscapeGameInstance::ClearInventory()
+{
+	Inventory.Empty();
+	if (GEngine)
+		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Orange, TEXT("Inventory cleared"));
+}
