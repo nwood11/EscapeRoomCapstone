@@ -14,6 +14,15 @@ class UCameraComponent;
 class UInputAction;
 struct FInputActionValue;
 
+// Delegate for updating HUD for interaction prompts
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(
+	FOnInteractableFocusChanged,
+	AActor*, FocusedActor,
+	FText, DisplayName,
+	FText, PromptText,
+	bool, bCanInteract
+);
+
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
 /**
@@ -33,6 +42,14 @@ class AEscapeRoomCapstoneCharacter : public ACharacter
 	UCameraComponent* FirstPersonCameraComponent;
 
 protected:
+	virtual void Tick(float DeltaSeconds) override;
+
+	// Currently looked-at interactable
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Interaction", meta=(AllowPrivateAccess="true"))
+	TObjectPtr<AActor> FocusedInteractable = nullptr;
+
+	// Updates FocusedInteractable (and HUD) if it changed
+	void UpdateInteractableFocus();
 
 	/** Jump Input Action */
 	UPROPERTY(EditAnywhere, Category ="Input")
@@ -96,6 +113,9 @@ public:
 
 	/** Returns first person camera component **/
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
-
+	
+	// UI can bind to this to update prompts when focus changes.
+	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	FOnInteractableFocusChanged OnInteractableFocusChanged;
 };
 

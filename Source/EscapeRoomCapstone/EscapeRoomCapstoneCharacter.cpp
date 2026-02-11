@@ -9,7 +9,7 @@
 #include "InputActionValue.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "EscapeRoomCapstone.h"
-#include "PlayerInterface.h"
+#include "InteractableInterface.h"
 
 AEscapeRoomCapstoneCharacter::AEscapeRoomCapstoneCharacter()
 {
@@ -43,6 +43,70 @@ AEscapeRoomCapstoneCharacter::AEscapeRoomCapstoneCharacter()
 	// Configure character movement
 	GetCharacterMovement()->BrakingDecelerationFalling = 1500.0f;
 	GetCharacterMovement()->AirControl = 0.5f;
+	
+	// Enable tick
+	PrimaryActorTick.bCanEverTick = true;
+}
+
+void AEscapeRoomCapstoneCharacter::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	UpdateInteractableFocus();
+}
+
+void AEscapeRoomCapstoneCharacter::UpdateInteractableFocus()
+{
+	if (!FirstPersonCameraComponent) return;
+
+	const FVector Start = FirstPersonCameraComponent->GetComponentLocation();
+	const FVector End = Start + (FirstPersonCameraComponent->GetForwardVector() * InteractionDistance);
+
+	FHitResult Hit;
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+
+	const bool bHit = GetWorld()->LineTraceSingleByChannel(
+		Hit,
+		Start,
+		End,
+		ECC_Visibility,
+		Params
+	);
+
+	AActor* NewFocused = nullptr;
+
+	if (bHit)
+	{
+		AActor* HitActor = Hit.GetActor();
+		if (HitActor && HitActor->GetClass()->ImplementsInterface(UInteractableInterface::StaticClass()))
+		{
+			NewFocused = HitActor;
+		}
+	}
+
+	// Only update if it changed
+	if (NewFocused == FocusedInteractable)
+	{
+		return;
+	}
+
+	FocusedInteractable = NewFocused;
+
+	// If we lost focus, tell HUD to hide
+	if (!FocusedInteractable)
+	{
+		OnInteractableFocusChanged.Broadcast(nullptr, FText::GetEmpty(), FText::GetEmpty(), false);
+		return;
+	}
+
+	// Pull metadata via interface
+	const bool bCan = IInteractableInterface::Execute_CanInteract(FocusedInteractable, this);
+	const FText DisplayName = IInteractableInterface::Execute_GetInteractDisplayName(FocusedInteractable);
+	const FText PromptText = IInteractableInterface::Execute_GetInteractPromptText(FocusedInteractable, this);
+	
+	// Notify UI
+	OnInteractableFocusChanged.Broadcast(FocusedInteractable, DisplayName, PromptText, bCan);
 }
 
 void AEscapeRoomCapstoneCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -122,30 +186,18 @@ void AEscapeRoomCapstoneCharacter::DoJumpEnd()
 
 void AEscapeRoomCapstoneCharacter::TryInteract()
 {
-	if (!FirstPersonCameraComponent) return;
+	// Check if we have a focused object to interact with
+	if (!FocusedInteractable) return;
 
-	FVector Start = FirstPersonCameraComponent->GetComponentLocation();
-	FVector End = Start + (FirstPersonCameraComponent->GetForwardVector() * InteractionDistance);
-
-	FHitResult Hit;
-	FCollisionQueryParams Params;
-	Params.AddIgnoredActor(this);
-
-	bool bHit = GetWorld()->LineTraceSingleByChannel(
-		Hit,
-		Start,
-		End,
-		ECC_Visibility,
-		Params
-	);
-
-	if (bHit && Hit.GetActor())
+	// Check if the focused object has the interactable interface
+	if (FocusedInteractable->GetClass()->ImplementsInterface(UInteractableInterface::StaticClass()))
 	{
-		UE_LOG(LogEscapeRoomCapstone, Log, TEXT("Hit: %s"), *Hit.GetActor()->GetName());
-		AActor* HitActor = Hit.GetActor();
-		if (HitActor && HitActor->GetClass()->ImplementsInterface(UPlayerInterface::StaticClass()))
+		// Check if the object is set to be interactable
+		const bool bCan = IInteractableInterface::Execute_CanInteract(FocusedInteractable, this);
+		if (bCan)
 		{
-			IPlayerInterface::Execute_OnInteract(HitActor, this);
+			// Interact with the object
+			IInteractableInterface::Execute_OnInteract(FocusedInteractable, this);
 		}
 	}
 }
