@@ -55,10 +55,21 @@ void AEscapeRoomCapstoneCharacter::Tick(float DeltaSeconds)
 	UpdateInteractableFocus();
 }
 
+/**
+ * Performs a forward line trace each frame to detect interactable objects.
+ *
+ * Responsibilities:
+ * - Determine which actor the player is currently looking at
+ * - Check if the actor implements InteractableInterface
+ * - Pull metadata (display name, prompt text, interactability state)
+ * - Broadcast delegate event when the focused interactable changes
+ * The HUD listens to delegate events instead of being updated directly.
+ */
 void AEscapeRoomCapstoneCharacter::UpdateInteractableFocus()
 {
 	if (!FirstPersonCameraComponent) return;
-
+	
+	// Start and end points for the line trace
 	const FVector Start = FirstPersonCameraComponent->GetComponentLocation();
 	const FVector End = Start + (FirstPersonCameraComponent->GetForwardVector() * InteractionDistance);
 
@@ -75,12 +86,14 @@ void AEscapeRoomCapstoneCharacter::UpdateInteractableFocus()
 	);
 
 	AActor* NewFocused = nullptr;
-
+	
+	// Check if we hit an actor
 	if (bHit)
 	{
 		AActor* HitActor = Hit.GetActor();
 		if (HitActor && HitActor->GetClass()->ImplementsInterface(UInteractableInterface::StaticClass()))
 		{
+			// If the hit actor has the interactable interface, set it as a potential new focused actor.
 			NewFocused = HitActor;
 		}
 	}
@@ -184,6 +197,13 @@ void AEscapeRoomCapstoneCharacter::DoJumpEnd()
 	StopJumping();
 }
 
+
+/**
+ * Called when player presses the interact input.
+ *
+ * Uses the currently focused interactable determined by the trace system.
+ * Checks CanInteract() before executing OnInteract().
+ */
 void AEscapeRoomCapstoneCharacter::TryInteract()
 {
 	// Check if we have a focused object to interact with

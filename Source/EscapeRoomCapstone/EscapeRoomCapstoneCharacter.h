@@ -14,7 +14,10 @@ class UCameraComponent;
 class UInputAction;
 struct FInputActionValue;
 
-// Delegate for updating HUD for interaction prompts
+/**
+ * Delegate fired when the currently focused interactable changes.
+ * This allows the HUD to be able to update without the character having direct references to UI components.
+ */
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(
 	FOnInteractableFocusChanged,
 	AActor*, FocusedActor,

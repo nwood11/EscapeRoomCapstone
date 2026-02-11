@@ -6,7 +6,24 @@
 #include "UObject/Interface.h"
 #include "InteractableInterface.generated.h"
 
-// This class does not need to be modified.
+/**
+ * InteractableInterface
+ *
+ * Defines the contract for any actor that can be interacted with by the player.
+ *
+ * This allows the player character to detect and interact with objects without
+ * needing to know their concrete class types (doors, puzzles, pickups, etc.).
+ *
+ * The interface exposes:
+ * - OnInteract(): executes the interaction logic
+ * - Metadata getters for HUD prompts and UI
+ * - CanInteract(): allows objects to gate interaction based on game state
+ *
+ * Used by:
+ * - Player character line trace system
+ * - HUD prompt display logic
+ */
+
 UINTERFACE(MinimalAPI)
 class UInteractableInterface : public UInterface
 {
