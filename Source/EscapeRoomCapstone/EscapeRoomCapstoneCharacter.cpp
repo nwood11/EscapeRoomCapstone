@@ -68,7 +68,7 @@ void AEscapeRoomCapstoneCharacter::Tick(float DeltaSeconds)
 void AEscapeRoomCapstoneCharacter::UpdateInteractableFocus()
 {
 	if (!FirstPersonCameraComponent) return;
-	
+
 	// Start and end points for the line trace
 	const FVector Start = FirstPersonCameraComponent->GetComponentLocation();
 	const FVector End = Start + (FirstPersonCameraComponent->GetForwardVector() * InteractionDistance);
@@ -76,14 +76,8 @@ void AEscapeRoomCapstoneCharacter::UpdateInteractableFocus()
 	FHitResult Hit;
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(this);
-
-	const bool bHit = GetWorld()->LineTraceSingleByChannel(
-		Hit,
-		Start,
-		End,
-		ECC_Visibility,
-		Params
-	);
+	
+	const bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params);
 
 	AActor* NewFocused = nullptr;
 	
@@ -98,18 +92,18 @@ void AEscapeRoomCapstoneCharacter::UpdateInteractableFocus()
 		}
 	}
 
-	// Only update if it changed
-	if (NewFocused == FocusedInteractable)
-	{
-		return;
-	}
-
+	const bool bFocusChanged = (NewFocused != FocusedInteractable);
 	FocusedInteractable = NewFocused;
 
-	// If we lost focus, tell HUD to hide
+	// Lost focus
 	if (!FocusedInteractable)
 	{
-		OnInteractableFocusChanged.Broadcast(nullptr, FText::GetEmpty(), FText::GetEmpty(), false);
+		// reset cache so next focus starts clean
+		LastDisplayName = FText::GetEmpty();
+		LastPromptText = FText::GetEmpty();
+		bLastCanInteract = false;
+
+		OnInteractableFocusChanged.Broadcast(nullptr, LastDisplayName, LastPromptText, bLastCanInteract);
 		return;
 	}
 
@@ -117,9 +111,22 @@ void AEscapeRoomCapstoneCharacter::UpdateInteractableFocus()
 	const bool bCan = IInteractableInterface::Execute_CanInteract(FocusedInteractable, this);
 	const FText DisplayName = IInteractableInterface::Execute_GetInteractDisplayName(FocusedInteractable);
 	const FText PromptText = IInteractableInterface::Execute_GetInteractPromptText(FocusedInteractable, this);
-	
-	// Notify UI
-	OnInteractableFocusChanged.Broadcast(FocusedInteractable, DisplayName, PromptText, bCan);
+
+	// Only check if any of the metadata (e.g. prompt text) has changed
+	const bool bUiChanged =
+		bFocusChanged ||
+		!DisplayName.EqualTo(LastDisplayName) ||
+		!PromptText.EqualTo(LastPromptText) ||
+		(bCan != bLastCanInteract);
+
+	if (bUiChanged)
+	{
+		LastDisplayName = DisplayName;
+		LastPromptText = PromptText;
+		bLastCanInteract = bCan;
+		// Update HUD prompt widget
+		OnInteractableFocusChanged.Broadcast(FocusedInteractable, DisplayName, PromptText, bCan);
+	}
 }
 
 void AEscapeRoomCapstoneCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)

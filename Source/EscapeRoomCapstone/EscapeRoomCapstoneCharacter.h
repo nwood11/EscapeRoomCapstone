@@ -51,6 +51,11 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Interaction", meta=(AllowPrivateAccess="true"))
 	TObjectPtr<AActor> FocusedInteractable = nullptr;
 
+	// Cache last UI values so HUD can refresh even when focus doesn't change.
+	FText LastDisplayName;
+	FText LastPromptText;
+	bool bLastCanInteract = false;
+	
 	// Updates FocusedInteractable (and HUD) if it changed
 	void UpdateInteractableFocus();
 
