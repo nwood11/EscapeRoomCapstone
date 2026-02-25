@@ -54,5 +54,23 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction")
 	bool CanInteract(AActor* Interactor) const;
 	
+	// If true, interacting should enter manipulation mode instead of doing a one-shot OnInteract.
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction|Manipulation")
+	bool ShouldEnterManipulation(AActor* Interactor) const;
+	
+	virtual bool ShouldEnterManipulation_Implementation(AActor* Interactor) const;
+	
+	// Called once when manipulation mode begins (after the character locks input).
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction|Manipulation")
+	void OnBeginManipulation(AActor* Interactor);
+
+	// Called every time mouse input is received during manipulation.
+	// Currently mouse X
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction|Manipulation")
+	void OnManipulateAxis(AActor* Interactor, float AxisDelta);
+
+	// Called once when manipulation mode ends
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction|Manipulation")
+	void OnEndManipulation(AActor* Interactor);
 	
 };

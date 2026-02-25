@@ -164,12 +164,22 @@ void AEscapeRoomCapstoneCharacter::MoveInput(const FInputActionValue& Value)
 
 void AEscapeRoomCapstoneCharacter::LookInput(const FInputActionValue& Value)
 {
-	// get the Vector2D look axis
 	FVector2D LookAxisVector = Value.Get<FVector2D>();
 
-	// pass the axis values to the aim input
-	DoAim(LookAxisVector.X, LookAxisVector.Y);
+	// If manipulating an object, route mouse delta to it
+	if (bIsManipulating && ActiveManipulatedActor &&
+		ActiveManipulatedActor->GetClass()->ImplementsInterface(UInteractableInterface::StaticClass()))
+	{
+		// Sensitivity
+		const float Delta = LookAxisVector.X * ManipulationSensitivity;
 
+		// Interface function for the manipulation axis
+		IInteractableInterface::Execute_OnManipulateAxis(ActiveManipulatedActor, this, Delta);
+		return;
+	}
+
+	// Otherwise normal camera look
+	DoAim(LookAxisVector.X, LookAxisVector.Y);
 }
 
 void AEscapeRoomCapstoneCharacter::DoAim(float Yaw, float Pitch)
@@ -213,18 +223,56 @@ void AEscapeRoomCapstoneCharacter::DoJumpEnd()
  */
 void AEscapeRoomCapstoneCharacter::TryInteract()
 {
-	// Check if we have a focused object to interact with
+	// If already manipulating, Interact ends it
+	if (bIsManipulating)
+	{
+		EndManipulation();
+		return;
+	}
+
 	if (!FocusedInteractable) return;
 
-	// Check if the focused object has the interactable interface
 	if (FocusedInteractable->GetClass()->ImplementsInterface(UInteractableInterface::StaticClass()))
 	{
-		// Check if the object is set to be interactable
 		const bool bCan = IInteractableInterface::Execute_CanInteract(FocusedInteractable, this);
-		if (bCan)
+		if (!bCan) return;
+
+		//  Check if the interactable is manipulable
+		const bool bWantsManipulation = IInteractableInterface::Execute_ShouldEnterManipulation(FocusedInteractable, this);
+		if (bWantsManipulation)
 		{
-			// Interact with the object
-			IInteractableInterface::Execute_OnInteract(FocusedInteractable, this);
+			BeginManipulation(FocusedInteractable);
+			IInteractableInterface::Execute_OnBeginManipulation(FocusedInteractable, this);
+			return;
 		}
+
+		IInteractableInterface::Execute_OnInteract(FocusedInteractable, this);
+	}
+}
+
+void AEscapeRoomCapstoneCharacter::BeginManipulation(AActor* Target)
+{
+	if (!Target) return;
+
+	bIsManipulating = true;
+	ActiveManipulatedActor = Target;
+
+	// Freeze player movement and camera look
+	if (AController* C = GetController())
+	{
+		C->SetIgnoreMoveInput(true);
+		C->SetIgnoreLookInput(true);
+	}
+}
+
+void AEscapeRoomCapstoneCharacter::EndManipulation()
+{
+	bIsManipulating = false;
+	ActiveManipulatedActor = nullptr;
+
+	if (AController* C = GetController())
+	{
+		C->SetIgnoreMoveInput(false);
+		C->SetIgnoreLookInput(false);
 	}
 }

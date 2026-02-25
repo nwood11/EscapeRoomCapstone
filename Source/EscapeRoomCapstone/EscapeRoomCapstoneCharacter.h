@@ -46,7 +46,7 @@ class AEscapeRoomCapstoneCharacter : public ACharacter
 
 protected:
 	virtual void Tick(float DeltaSeconds) override;
-
+	
 	// Currently looked-at interactable
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Interaction", meta=(AllowPrivateAccess="true"))
 	TObjectPtr<AActor> FocusedInteractable = nullptr;
@@ -114,6 +114,26 @@ protected:
 
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
 	void TryInteract();
+	
+	// Manipulation Interaction
+	
+	// True when player is currently manipulating an object
+	UPROPERTY()
+	bool bIsManipulating = false;
+
+	// The actor currently being manipulated
+	UPROPERTY()
+	AActor* ActiveManipulatedActor = nullptr;
+
+	// Sensitivity multiplier
+	UPROPERTY(EditAnywhere, Category="Interaction|Manipulation")
+	float ManipulationSensitivity = 1.0f;
+
+	// Enter manipulation mode
+	void BeginManipulation(AActor* Target);
+
+	// Exit manipulation mode
+	void EndManipulation();
 	
 public:
 	/** Returns the first person mesh **/

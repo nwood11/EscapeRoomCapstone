@@ -4,3 +4,8 @@
 #include "InteractableInterface.h"
 
 // Add default functionality here for any IInteractableInterface functions that are not pure virtual.
+
+bool IInteractableInterface::ShouldEnterManipulation_Implementation(AActor* Interactor) const
+{
+	return false;
+}
