@@ -171,10 +171,11 @@ void AEscapeRoomCapstoneCharacter::LookInput(const FInputActionValue& Value)
 		ActiveManipulatedActor->GetClass()->ImplementsInterface(UInteractableInterface::StaticClass()))
 	{
 		// Sensitivity
-		const float Delta = LookAxisVector.X * ManipulationSensitivity;
+		const float XDelta = LookAxisVector.X * ManipulationSensitivity;
+		const float YDelta = LookAxisVector.Y * ManipulationSensitivity;
 
 		// Interface function for the manipulation axis
-		IInteractableInterface::Execute_OnManipulateAxis(ActiveManipulatedActor, this, Delta);
+		IInteractableInterface::Execute_OnManipulateAxis(ActiveManipulatedActor, this, XDelta, YDelta);
 		return;
 	}
 

@@ -64,10 +64,9 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction|Manipulation")
 	void OnBeginManipulation(AActor* Interactor);
 
-	// Called every time mouse input is received during manipulation.
-	// Currently mouse X
+	// Called every time mouse input is received during manipulation to pass axis deltas
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction|Manipulation")
-	void OnManipulateAxis(AActor* Interactor, float AxisDelta);
+	void OnManipulateAxis(AActor* Interactor, float XAxisDelta, float YAxisDelta);
 
 	// Called once when manipulation mode ends
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction|Manipulation")
