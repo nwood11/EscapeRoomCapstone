@@ -49,16 +49,10 @@ public:
 	// Returns the prompt shown to the player (ex: "Press E to open").
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction")
 	FText GetInteractPromptText(AActor* Interactor) const;
-
-	// Returns whether the object can currently be interacted with.
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction")
-	bool CanInteract(AActor* Interactor) const;
 	
 	// If true, interacting should enter manipulation mode instead of doing a one-shot OnInteract.
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction|Manipulation")
 	bool ShouldEnterManipulation(AActor* Interactor) const;
-	
-	virtual bool ShouldEnterManipulation_Implementation(AActor* Interactor) const;
 	
 	// Called once when manipulation mode begins (after the character locks input).
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction|Manipulation")

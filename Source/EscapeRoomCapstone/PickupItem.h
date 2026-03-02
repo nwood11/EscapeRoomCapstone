@@ -46,5 +46,4 @@ public:
 
 	virtual FText GetInteractPromptText_Implementation(AActor* Interactor) const override;
 
-	virtual bool CanInteract_Implementation(AActor* Interactor) const override;
 };

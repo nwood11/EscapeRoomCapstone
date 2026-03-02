@@ -103,12 +103,11 @@ void AEscapeRoomCapstoneCharacter::UpdateInteractableFocus()
 		LastPromptText = FText::GetEmpty();
 		bLastCanInteract = false;
 
-		OnInteractableFocusChanged.Broadcast(nullptr, LastDisplayName, LastPromptText, bLastCanInteract);
+		OnInteractableFocusChanged.Broadcast(nullptr, LastDisplayName, LastPromptText);
 		return;
 	}
 
 	// Pull metadata via interface
-	const bool bCan = IInteractableInterface::Execute_CanInteract(FocusedInteractable, this);
 	const FText DisplayName = IInteractableInterface::Execute_GetInteractDisplayName(FocusedInteractable);
 	const FText PromptText = IInteractableInterface::Execute_GetInteractPromptText(FocusedInteractable, this);
 
@@ -116,16 +115,14 @@ void AEscapeRoomCapstoneCharacter::UpdateInteractableFocus()
 	const bool bUiChanged =
 		bFocusChanged ||
 		!DisplayName.EqualTo(LastDisplayName) ||
-		!PromptText.EqualTo(LastPromptText) ||
-		(bCan != bLastCanInteract);
+		!PromptText.EqualTo(LastPromptText);
 
 	if (bUiChanged)
 	{
 		LastDisplayName = DisplayName;
 		LastPromptText = PromptText;
-		bLastCanInteract = bCan;
 		// Update HUD prompt widget
-		OnInteractableFocusChanged.Broadcast(FocusedInteractable, DisplayName, PromptText, bCan);
+		OnInteractableFocusChanged.Broadcast(FocusedInteractable, DisplayName, PromptText);
 	}
 }
 
@@ -235,9 +232,6 @@ void AEscapeRoomCapstoneCharacter::TryInteract()
 
 	if (FocusedInteractable->GetClass()->ImplementsInterface(UInteractableInterface::StaticClass()))
 	{
-		const bool bCan = IInteractableInterface::Execute_CanInteract(FocusedInteractable, this);
-		if (!bCan) return;
-
 		//  Check if the interactable is manipulable
 		const bool bWantsManipulation = IInteractableInterface::Execute_ShouldEnterManipulation(FocusedInteractable, this);
 		if (bWantsManipulation)

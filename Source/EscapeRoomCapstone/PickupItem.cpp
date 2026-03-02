@@ -39,8 +39,3 @@ FText APickupItem::GetInteractPromptText_Implementation(AActor* Interactor) cons
 {
 	return PromptText;
 }
-
-bool APickupItem::CanInteract_Implementation(AActor* Interactor) const
-{
-	return !ItemID.IsNone() && Quantity > 0;
-}

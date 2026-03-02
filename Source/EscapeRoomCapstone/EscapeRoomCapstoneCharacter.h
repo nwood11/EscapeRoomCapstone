@@ -18,12 +18,11 @@ struct FInputActionValue;
  * Delegate fired when the currently focused interactable changes.
  * This allows the HUD to be able to update without the character having direct references to UI components.
  */
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(
 	FOnInteractableFocusChanged,
 	AActor*, FocusedActor,
 	FText, DisplayName,
-	FText, PromptText,
-	bool, bCanInteract
+	FText, PromptText
 );
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
