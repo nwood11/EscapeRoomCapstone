@@ -95,6 +95,19 @@ void UEscapeGameInstance::AddItem(FName ItemName, int32 Quantity)
 
 	if (FInventoryItem* ExistingItem = Inventory.Find(ItemName))
 	{
+		if (ExistingItem->MaxStackSize > 0)
+		{
+			int32 SpaceLeft = ExistingItem->MaxStackSize - ExistingItem->Quantity;
+			if (SpaceLeft <= 0)
+			{
+				if (GEngine)
+					GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Orange, 
+						FString::Printf(TEXT("Cannot add more %s (stack full)"), *ItemName.ToString()));
+				return;
+			}
+			Quantity = FMath::Min(Quantity, SpaceLeft);
+		}
+
 		ExistingItem->Quantity += Quantity;
 		if (GEngine)
 			GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Cyan, 
@@ -148,4 +161,45 @@ void UEscapeGameInstance::ClearInventory()
 	Inventory.Empty();
 	if (GEngine)
 		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Orange, TEXT("Inventory cleared"));
+}
+
+TArray<FInventoryItem> UEscapeGameInstance::GetItems()
+{
+	TArray<FInventoryItem> ItemsArray;
+	
+	for (const TPair<FName, FInventoryItem>& Pair : Inventory)
+	{
+		ItemsArray.Add(Pair.Value);
+	}
+	
+	return ItemsArray;
+}
+
+bool UEscapeGameInstance::HasItem(FName ItemName, int32 MinQuantity)
+{
+	if (FInventoryItem* ExistingItem = Inventory.Find(ItemName))
+	{
+		return ExistingItem->Quantity >= MinQuantity;
+	}
+	return false;
+}
+
+int32 UEscapeGameInstance::GetItemQuantity(FName ItemName)
+{
+	if (FInventoryItem* ExistingItem = Inventory.Find(ItemName))
+	{
+		return ExistingItem->Quantity;
+	}
+	return 0;
+}
+
+FInventoryItem UEscapeGameInstance::GetItemData(FName ItemName)
+{
+	if (FInventoryItem* ExistingItem = Inventory.Find(ItemName))
+	{
+		return *ExistingItem;
+	}
+	
+	// Return empty item if not found
+	return FInventoryItem();
 }
