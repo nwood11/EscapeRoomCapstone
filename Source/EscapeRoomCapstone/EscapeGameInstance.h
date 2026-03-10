@@ -2,6 +2,7 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
+#include "Engine/Texture2D.h"
 #include "EscapeGameInstance.generated.h"
 
 // Delegate for HUD communication - broadcasts when timer updates
@@ -31,12 +32,21 @@ struct FInventoryItem
 	UPROPERTY(BlueprintReadWrite, Category = "Inventory")
 	FText Description;
 
+	// Item icon
+	UPROPERTY(BlueprintReadWrite, Category = "Inventory")
+	UTexture2D* Icon = nullptr;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Inventory")
+	int32 MaxStackSize = 0;
+
 	//default constr
 	FInventoryItem()
 		: ItemName(NAME_None)
 		, Quantity(0)
 		, DisplayName(FText::GetEmpty())
 		, Description(FText::GetEmpty())
+		, Icon(nullptr)
+		, MaxStackSize(0)
 	{}
 
 	FInventoryItem(FName InName, int32 InQuantity = 1)
@@ -44,6 +54,8 @@ struct FInventoryItem
 		, Quantity(InQuantity)
 		, DisplayName(FText::FromName(InName))
 		, Description(FText::GetEmpty())
+		, Icon(nullptr)
+		, MaxStackSize(0)
 	{}
 };
 
@@ -113,4 +125,16 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	void ClearInventory();
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	TArray<FInventoryItem> GetItems();
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	bool HasItem(FName ItemName, int32 MinQuantity = 1);
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	int32 GetItemQuantity(FName ItemName);
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	FInventoryItem GetItemData(FName ItemName);
 };
