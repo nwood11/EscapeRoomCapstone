@@ -118,7 +118,7 @@ public:
 
 	// === INVENTORY FUNCTIONS(Nico) ===
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
-	void AddItem(FName ItemName, int32 Quantity = 1);
+	void AddItem(FName ItemName, int32 Quantity = 1, FText Description = FText::GetEmpty(), UTexture2D* Icon = nullptr);
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	bool RemoveItem(FName ItemName, int32 Quantity = 1);

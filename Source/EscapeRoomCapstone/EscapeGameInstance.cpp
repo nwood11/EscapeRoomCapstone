@@ -84,7 +84,7 @@ FString UEscapeGameInstance::GetFormattedTime()
 }
 
 // === INVENTORY FUNCTIONS (Nico) ===
-void UEscapeGameInstance::AddItem(FName ItemName, int32 Quantity)
+void UEscapeGameInstance::AddItem(FName ItemName, int32 Quantity, FText Description, UTexture2D* Icon)
 {
 	if (ItemName.IsNone() || Quantity <= 0)
 	{
@@ -101,7 +101,7 @@ void UEscapeGameInstance::AddItem(FName ItemName, int32 Quantity)
 			if (SpaceLeft <= 0)
 			{
 				if (GEngine)
-					GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Orange, 
+					GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Orange,
 						FString::Printf(TEXT("Cannot add more %s (stack full)"), *ItemName.ToString()));
 				return;
 			}
@@ -109,18 +109,30 @@ void UEscapeGameInstance::AddItem(FName ItemName, int32 Quantity)
 		}
 
 		ExistingItem->Quantity += Quantity;
+		if (ExistingItem->Icon == nullptr && Icon != nullptr)
+		{
+			ExistingItem->Icon = Icon;
+		}
 		if (GEngine)
-			GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Cyan, 
+			GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Cyan,
 				FString::Printf(TEXT("Added %d x %s (Total: %d)"), Quantity, *ItemName.ToString(), ExistingItem->Quantity));
 	}
 	else
 	{
 		FInventoryItem NewItem(ItemName, Quantity);
+		if (!Description.IsEmpty())
+		{
+			NewItem.Description = Description;
+		}
+		if (Icon != nullptr)
+		{
+			NewItem.Icon = Icon;
+		}
 		Inventory.Add(ItemName, NewItem);
 		if (GEngine)
-			GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Green, 
+			GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Green,
 				FString::Printf(TEXT("Picked up %d x %s"), Quantity, *ItemName.ToString()));
-	} //if is if the item is already in inventory, second is if it's a new item
+	}
 
 	OnInventoryUpdated.Broadcast(ItemName, Inventory[ItemName].Quantity);
 }
