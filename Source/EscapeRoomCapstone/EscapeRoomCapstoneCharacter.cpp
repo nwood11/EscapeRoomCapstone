@@ -262,6 +262,12 @@ void AEscapeRoomCapstoneCharacter::BeginManipulation(AActor* Target)
 
 void AEscapeRoomCapstoneCharacter::EndManipulation()
 {
+	if (ActiveManipulatedActor &&
+	ActiveManipulatedActor->GetClass()->ImplementsInterface(UInteractableInterface::StaticClass()))
+	{
+		IInteractableInterface::Execute_OnEndManipulation(ActiveManipulatedActor, this);
+	}
+	
 	bIsManipulating = false;
 	ActiveManipulatedActor = nullptr;
 
