@@ -4,10 +4,23 @@
 #include "GameFramework/Actor.h"
 #include "ValveGauge.generated.h"
 
-class UStaticMeshComponent;
 class AManipObjectValve;
+class USceneComponent;
+class UStaticMeshComponent;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnGaugeTargetMetChanged, bool, bIsTargetMet);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnGaugeTargetMetChanged, bool, bTargetMet);
+
+USTRUCT(BlueprintType)
+struct FValveGaugeInfluence
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Gauge")
+	AManipObjectValve* Valve = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Gauge")
+	float Influence = 1.0f;
+};
 
 UCLASS()
 class ESCAPEROOMCAPSTONE_API AValveGauge : public AActor
@@ -20,7 +33,6 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components")
 	USceneComponent* Root;
 
@@ -30,46 +42,42 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components")
 	UStaticMeshComponent* GaugeIndicator;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Gauge")
-	AManipObjectValve* ConnectedValve = nullptr;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components")
 	UStaticMeshComponent* TargetZoneIndicator;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Gauge")
-	float TargetZoneThickness = 6.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Gauge")
+	TArray<FValveGaugeInfluence> ValveInfluences;
 
-	UFUNCTION(BlueprintCallable, Category="Gauge")
-	void UpdateTargetZoneIndicator();
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Gauge")
-	float CurrentValue = 10.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Gauge")
+	float IndicatorMinX = 0.0f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Gauge")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Gauge")
+	float IndicatorMaxX = 100.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Gauge")
 	float TargetValue = 50.0f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Gauge")
-	float TargetTolerance = 3.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Gauge")
+	float TargetTolerance = 5.0f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Gauge")
-	float IndicatorMinX = 10.0f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Gauge")
-	float IndicatorMaxX = 90.0f;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Gauge")
+	float CurrentValue = 0.0f;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Gauge")
 	bool bTargetMet = false;
 
+public:
 	UPROPERTY(BlueprintAssignable, Category="Gauge")
 	FOnGaugeTargetMetChanged OnGaugeTargetMetChanged;
 
-public:
-	UFUNCTION(BlueprintCallable, Category="Gauge")
-	void UpdateGauge(float NewValue, float Percentage);
+	UFUNCTION()
+	void OnSourceValveChanged(float NewValue, float Percentage);
 
 	UFUNCTION(BlueprintCallable, Category="Gauge")
 	bool IsTargetMet() const;
 
-private:
+protected:
+	void RecalculateGauge();
 	void SetTargetMet(bool bNewTargetMet);
+	void UpdateTargetZoneIndicator();
 };
