@@ -59,13 +59,22 @@ protected:
 	TArray<ECircuitDirection> BaseConnections;
 	
 public:
+	
+	UPROPERTY(BlueprintReadOnly, Category = "Circuit")
+	bool bIsSource = false;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Circuit")
+	bool bIsOutput = false;
+	
 	UFUNCTION(BlueprintCallable, Category = "Circuit")
 	void InitializeNode(
 		ACircuitPuzzleManager* InPuzzleManager,
 		int32 InRow,
 		int32 InColumn,
 		int32 InStartingRotationIndex,
-		const TArray<ECircuitDirection>& InBaseConnections
+		const TArray<ECircuitDirection>& InBaseConnections,
+		bool bInIsSource,
+		bool bInIsOutput
 	);
 
 	UFUNCTION(BlueprintCallable, Category = "Circuit")

@@ -73,7 +73,7 @@ protected:
 	ACircuitNode* SourceNode = nullptr;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Circuit|Runtime")
-	ACircuitNode* OutputNode = nullptr;
+	TArray<ACircuitNode*> OutputNodes;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Circuit|Runtime")
 	bool bPuzzleSolved = false;

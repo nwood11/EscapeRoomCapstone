@@ -25,7 +25,7 @@ void ACircuitPuzzleManager::SpawnCircuitBoard()
 	SpawnedNodes.Empty();
 	NodeGrid.Empty();
 	SourceNode = nullptr;
-	OutputNode = nullptr;
+	OutputNodes.Empty();
 	bPuzzleSolved = false;
 
 	for (const FCircuitNodeConfig& Config : NodeConfigs)
@@ -91,7 +91,9 @@ void ACircuitPuzzleManager::SpawnCircuitBoard()
 			Config.Row,
 			Config.Column,
 			Config.StartingRotationIndex,
-			BaseConnections
+			BaseConnections,
+			Config.bIsSource,
+			Config.bIsOutput
 		);
 
 		SpawnedNodes.Add(NewNode);
@@ -109,12 +111,7 @@ void ACircuitPuzzleManager::SpawnCircuitBoard()
 
 		if (Config.bIsOutput)
 		{
-			if (OutputNode)
-			{
-				UE_LOG(LogTemp, Warning, TEXT("CircuitPuzzleManager: Multiple output nodes found. Using latest."));
-			}
-
-			OutputNode = NewNode;
+			OutputNodes.Add(NewNode);
 		}
 	}
 
@@ -123,7 +120,7 @@ void ACircuitPuzzleManager::SpawnCircuitBoard()
 		UE_LOG(LogTemp, Warning, TEXT("CircuitPuzzleManager: No source node configured."));
 	}
 
-	if (!OutputNode)
+	if (OutputNodes.IsEmpty())
 	{
 		UE_LOG(LogTemp, Warning, TEXT("CircuitPuzzleManager: No output node configured."));
 	}
@@ -133,14 +130,23 @@ void ACircuitPuzzleManager::RecalculatePowerFlow()
 {
 	ClearPoweredStates();
 
-	if (!SourceNode || !OutputNode)
+	if (!SourceNode || OutputNodes.IsEmpty())
 	{
 		return;
 	}
 
 	PropagatePowerFromSource();
 
-	const bool bNowSolved = OutputNode->IsPowered();
+	bool bNowSolved = true;
+
+	for (ACircuitNode* Output : OutputNodes)
+	{
+		if (!Output || !Output->IsPowered())
+		{
+			bNowSolved = false;
+			break;
+		}
+	}
 
 	if (bNowSolved && !bPuzzleSolved)
 	{

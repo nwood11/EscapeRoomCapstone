@@ -15,13 +15,16 @@ void ACircuitNode::InitializeNode(
 	int32 InRow,
 	int32 InColumn,
 	int32 InStartingRotationIndex,
-	const TArray<ECircuitDirection>& InBaseConnections
+	const TArray<ECircuitDirection>& InBaseConnections,
+	bool bInIsSource,
+	bool bInIsOutput
 )
 {
 	PuzzleManager = InPuzzleManager;
 	Row = InRow;
 	Column = InColumn;
-
+	bIsSource = bInIsSource;
+	bIsOutput = bInIsOutput;
 	RotationIndex = ((InStartingRotationIndex % 4) + 4) % 4;
 
 	BaseConnections = InBaseConnections;
@@ -29,8 +32,7 @@ void ACircuitNode::InitializeNode(
 	const FRotator BoardRotation = PuzzleManager
 		? PuzzleManager->GetActorRotation()
 		: FRotator::ZeroRotator;
-
-	// Wall-mounted board rotates around X axis
+	
 	SetActorRotation(
 		BoardRotation + FRotator(0.f, 0.f, RotationIndex * 90.f)
 	);
@@ -76,11 +78,6 @@ bool ACircuitNode::HasConnection(ECircuitDirection Direction) const
 
 void ACircuitNode::SetPowered(bool bNewPowered)
 {
-	if (bPowered == bNewPowered)
-	{
-		return;
-	}
-
 	bPowered = bNewPowered;
 
 	BP_UpdatePowerVisuals(bPowered);
