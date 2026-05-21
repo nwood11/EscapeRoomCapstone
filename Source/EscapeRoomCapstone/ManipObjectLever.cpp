@@ -34,13 +34,11 @@ void AManipObjectLever::OnDeltaApplied(float AppliedDelta)
 {
 	Super::OnDeltaApplied(AppliedDelta);
 
-	constexpr float LimitTolerance = 0.5f;
-
-	if (FMath::IsNearlyEqual(CurrentTurnAmount, MinTurnAmount, LimitTolerance))
+	if (CurrentTurnAmount <= MinTurnAmount)
 	{
 		OnMinReached.Broadcast();
 	}
-	else if (FMath::IsNearlyEqual(CurrentTurnAmount, MaxTurnAmount, LimitTolerance))
+	else if (CurrentTurnAmount >= MaxTurnAmount)
 	{
 		OnMaxReached.Broadcast();
 	}

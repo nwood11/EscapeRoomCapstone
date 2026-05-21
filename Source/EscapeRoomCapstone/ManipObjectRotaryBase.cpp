@@ -55,12 +55,6 @@ void AManipObjectRotaryBase::HandleManipulationDelta(float Delta)
 		return;
 	}
 
-	if (!CanApplyDelta(Delta))
-	{
-		StopMovementAudio();
-		return;
-	}
-
 	ApplyDelta(Delta);
 }
 
